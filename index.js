@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import config from "./config.js";
 import global from "./globals.js";
 import { search } from "./main.js"; 
 import TwitterAPIScraper from "./TwitterAPIScraper.js";
@@ -12,6 +13,11 @@ app.use(cors())
 const twitterScraper = new TwitterAPIScraper();
 const instagramScraper = new GreatfonScraper();
 
+setInterval(async () => {
+    twitterScraper.deleteGuestToken();
+    await twitterScraper.ensureGuestToken();
+}, 15 * 60 * 1000);
+
 app.get('/search', validator, async (req, res) => {
     let { target, tweetLimit, relationLimit, instagramLookup, depth } = req.query;
 
@@ -19,7 +25,7 @@ app.get('/search', validator, async (req, res) => {
 
     if (!result) return res.status(500).json({
         success: false,
-        error: "Search method failed"
+        error: "Target doesn't exists or API request failed."
     });
 
     return res.status(200).json({ success: true, ...result });
@@ -70,4 +76,4 @@ function wrongParameters(res, param) {
     });
 }
 
-app.listen(8080, () => console.log('Server is listening on port 8080.'));
+app.listen(config.PORT, () => console.log(`Server is listening on port ${config.PORT}.`));

@@ -172,15 +172,14 @@ class TwitterAPIScraper extends Scraper {
                 const hasBirthdate = !!data.legacy_extended_profile;
                 obj = {
                     userId: data.rest_id,
-                    created_at: data.legacy.created_at,
+                    profilePictureUrl: data.legacy.profile_image_url_https,
+                    createdAt: data.legacy.created_at,
                     description: data.legacy.description,
-                    favoriteCount: data.legacy.favourites_count,
                     followersCount: data.legacy.followers_count,
                     followingCount: data.legacy.friends_count,
                     tweetCount: data.legacy.statuses_count,
                     name: data.legacy.name,
                     screenName: data.legacy.screen_name,
-                    url: data.legacy.url,
                     private: data.legacy.protected,
                     birthdate: hasBirthdate ? data.legacy_extended_profile.birthdate : null
                 };
@@ -201,15 +200,14 @@ class TwitterAPIScraper extends Scraper {
                 const hasBirthdate = !!data.legacy_extended_profile;
                 obj = {
                     userId: data.rest_id,
-                    created_at: data.legacy.created_at,
+                    profilePictureUrl: data.legacy.profile_image_url_https,
+                    createdAt: data.legacy.created_at,
                     description: data.legacy.description,
-                    favoriteCount: data.legacy.favourites_count,
                     followersCount: data.legacy.followers_count,
                     followingCount: data.legacy.friends_count,
                     tweetCount: data.legacy.statuses_count,
                     name: data.legacy.name,
                     screenName: data.legacy.screen_name,
-                    url: data.legacy.url,
                     private: data.legacy.protected,
                     birthdate: hasBirthdate ? data.legacy_extended_profile.birthdate : null
                 };

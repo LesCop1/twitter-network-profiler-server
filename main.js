@@ -42,7 +42,7 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
     if (depth < global.MIN_DEPTH || depth > global.MAX_DEPTH) return null;
 
     const targetInfo = await twitterScraper.getProfile(target);
-    let targetMentions = null;
+    let targetMentions = { keys: [] };
     let instaInfo = null;
 
     if (targetInfo && Object.keys(targetInfo).length !== 0) {
@@ -57,11 +57,14 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
         targetMentions = await twitterScraper.getMentions(targetInfo.userId, tweetLimit);
         targetMentions.sortByOccurrence();
         targetMentions.keepMax(relationLimit);
+    } else {
+        return null;
     }
 
     const user = {
         ...targetInfo,
         instagram: instaInfo,
+        available: true,
         depth: 0,
     }
 
@@ -73,7 +76,7 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
     tree[`${targetInfo.userId}`] = [];
 
     for (let i = 0; i < targetMentions.keys.length; i++) {
-        console.log(`Recherche de la ${i + 1} personne | (${i + 1})`);
+        console.log(`(${i + 1})`);
 
         tree[`${targetInfo.userId}`].push({
             key: targetMentions.keys[i],
@@ -84,11 +87,15 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
         if (isNotInArray(data, targetMentions.keys[i])) {
             const { data: dataDepth1, mentions: mentionsDepth2 } = await searchOnePersonById(twitterScraper, instagramScraper, targetMentions.keys[i], tweetLimit, relationLimit, instagramLookup);
 
-            if (dataDepth1) data.push({ ...dataDepth1, depth: 1 });
+            if (dataDepth1) {
+                data.push({ ...dataDepth1, available: true, depth: 1 });
+            } else {
+                data.push({ userId: targetMentions.keys[i], available: false, depth: 1 });
+            }
 
             if (depth >= 2 && mentionsDepth2) {
                 for (let j = 0; j < mentionsDepth2.keys.length; j++) {
-                    console.log(`Recherche de la ${j + 1} personne de la ${i + 1} personne | (${j + 1},${i + 1})`);
+                    console.log(`(${j + 1},${i + 1})`);
 
                     const treeDepth2 = tree[`${targetInfo.userId}`][tree[`${targetInfo.userId}`].length - 1].tab;
                     treeDepth2.push({
@@ -100,11 +107,15 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
                     if (isNotInArray(data, mentionsDepth2.keys[j])) {
                         const { data: dataDepth2, mentions: mentionsDepth3 } = await searchOnePersonById(twitterScraper, instagramScraper, mentionsDepth2.keys[j], tweetLimit, relationLimit, instagramLookup);
                         
-                        if (dataDepth2) data.push({ ...dataDepth2, depth: 2 });
+                        if (dataDepth2) {
+                            data.push({ ...dataDepth2, available: true, depth: 2 });
+                        } else {
+                            data.push({ userId: mentionsDepth2.keys[j], available: false, depth: 2 });
+                        }
 
-                        if (depth >= 3 && mentionsDepth2) {
+                        if (depth >= 3 && mentionsDepth3) {
                             for (let k = 0; k < mentionsDepth3.keys.length; k++) {
-                                console.log(`Recherche de la ${k + 1} personne de la ${j + 1} personne de la ${i + 1} personne | (${k + 1},${j + 1},${i + 1})`);
+                                console.log(`(${k + 1},${j + 1},${i + 1})`);
 
                                 const treeDepth3 = treeDepth2[treeDepth2.length - 1].tab;
 
@@ -117,7 +128,11 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
                                 if (isNotInArray(data, mentionsDepth3.keys[k])) {
                                     const { data: dataDepth3 } = await searchOnePersonById(twitterScraper, instagramScraper, mentionsDepth3.keys[k], tweetLimit, relationLimit, instagramLookup);
 
-                                    if (dataDepth3) data.push({ ...dataDepth3, depth: 3 });
+                                    if (dataDepth3) {
+                                        data.push({ ...dataDepth3, available: true, depth: 3 });
+                                    } else {
+                                        data.push({ userId: mentionsDepth3.keys[k], available: false, depth: 3 });
+                                    }
                                 }
                             }
                         }
