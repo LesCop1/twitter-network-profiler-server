@@ -1,5 +1,3 @@
-import TwitterAPIScraper from "./TwitterAPIScraper.js";
-import GreatfonScraper from "./GreatfonScraper.js";
 import global from "./globals.js";
 import { extractInstagramAccountIfAny } from "./helpers.js";
 
