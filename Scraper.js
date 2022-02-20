@@ -12,7 +12,7 @@ class Scraper {
         this.apiHeaders["User-Agent"] = this.userAgent;
     }
 
-    async get(url, params, headers, callback) {
+    async get(url, params, headers, callback, failCallback) {
         for (let attempt = 0; attempt < this.retries; attempt++) {
             try {
                 const finalUrl = params ? url + params : url;
@@ -21,10 +21,11 @@ class Scraper {
                 const success = !callback ? true : callback(res);
                 
                 if (success) return res;
-            } catch {}
+            } catch { }
 
             if (attempt < this.retries) {
-                await new Promise(x => setTimeout(x, (1000 * Math.pow(2, attempt))));
+                await new Promise(x => setTimeout(x, (1000 * Math.pow(5, attempt))));
+                if (failCallback) failCallback();
             }
         }
         return null;

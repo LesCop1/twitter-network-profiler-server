@@ -57,7 +57,11 @@ class TwitterAPIScraper extends Scraper {
         await this.ensureGuestToken();
 
         params = encodeURI(`variables=${JSON.stringify(params)}`);
-        const res = await this.get(endpoint, params, this.apiHeaders, this.checkApiResponse);
+        const failCallback = async () => {
+            this.deleteGuestToken();
+            await this.ensureGuestToken();
+        };
+        const res = await this.get(endpoint, params, this.apiHeaders, this.checkApiResponse, failCallback.bind(this));
 
         if (res) return JSON.parse(JSON.stringify(res.data));
         return null;
@@ -164,7 +168,7 @@ class TwitterAPIScraper extends Scraper {
     async getProfile(user) {
         const res = await this.getApiData("https://api.twitter.com/graphql/jMaTS-_Ea8vh9rpKggJbCQ/UserByScreenName?", { screen_name: user, withHighlightedLabel: false });
 
-        let obj = {};
+        let obj = null;
         if (res) {
             const data = res.data.user;
 
@@ -192,7 +196,7 @@ class TwitterAPIScraper extends Scraper {
     async getProfileById(userId) {
         const res = await this.getApiData("https://twitter.com/i/api/graphql/I5nvpI91ljifos1Y3Lltyg/UserByRestId?", { userId: userId, withSafetyModeUserFields: false, withSuperFollowsUserFields: false });
 
-        let obj = {};
+        let obj = null;
         if (res) {
             const data = res.data.user.result;
 

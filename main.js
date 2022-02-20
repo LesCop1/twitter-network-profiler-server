@@ -6,11 +6,16 @@ async function searchOnePersonById(twitterScraper, instagramScraper, userId, twe
     if (tweetLimit < global.MIN_TWEET_LIMIT || tweetLimit > global.MAX_TWEET_LIMIT) return null;
     if (relationLimit < global.MIN_RELATION_LIMIT || relationLimit > global.MAX_RELATION_LIMIT) return null;
 
-    const targetInfo = await twitterScraper.getProfileById(userId);
-    let targetMentions = null;
+    let obj = {
+        data: null,
+        mentions: null
+    };
     let instaInfo = null;
+    let targetMentions = null;
 
-    if (targetInfo && Object.keys(targetInfo).length !== 0) {
+    const targetInfo = await twitterScraper.getProfileById(userId);
+
+    if (targetInfo) {
         if (instagramLookup) {
             const instaAccount = await extractInstagramAccountIfAny(targetInfo);
 
@@ -22,15 +27,17 @@ async function searchOnePersonById(twitterScraper, instagramScraper, userId, twe
         targetMentions = await twitterScraper.getMentions(targetInfo.userId, tweetLimit);
         targetMentions.sortByOccurrence();
         targetMentions.keepMax(relationLimit);
+        
+        obj = {
+            data: {
+                ...targetInfo,
+                instagram: instaInfo,
+            },
+            mentions: targetMentions
+        };
     }
 
-    return {
-        data: {
-            ...targetInfo,
-            instagram: instaInfo,
-        },
-        mentions: targetMentions
-    }
+    return obj;
 }
 
 async function search(twitterScraper, instagramScraper, target, tweetLimit, relationLimit, instagramLookup, depth) {
@@ -43,7 +50,7 @@ async function search(twitterScraper, instagramScraper, target, tweetLimit, rela
     let targetMentions = { keys: [] };
     let instaInfo = null;
 
-    if (targetInfo && Object.keys(targetInfo).length !== 0) {
+    if (targetInfo) {
         if (instagramLookup) {
             const instaAccount = await extractInstagramAccountIfAny(targetInfo);
 
